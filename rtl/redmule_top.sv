@@ -214,8 +214,8 @@ if (REP > 1) begin : gen_streamer_replica
   ) i_hci_copy_sink (
     .clk_i,
     .rst_ni,
-    .tcdm_main ( tcdm                ),
-    .tcdm_copy ( tcdm_replica        ),
+    .tcdm_main ( tcdm.monitor        ),
+    .tcdm_copy ( tcdm_replica.target ),
     .fault_o   ( interface_hci_fault )
   );
 
