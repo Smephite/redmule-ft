@@ -208,14 +208,46 @@ if (REP > 1) begin : gen_streamer_replica
     .clk ( clk_i )
   );
 
+  hci_core_intf #(
+    `ifndef SYNTHESIS
+      .WAIVE_RSP3_ASSERT ( 1'b1 ), // waive RSP-3 on memory-side of HCI FIFO
+      .WAIVE_RSP5_ASSERT ( 1'b1 ),  // waive RSP-5 on memory-side of HCI FIFO
+    `endif
+    .DW  ( `HCI_SIZE_GET_DW(tcdm) ),
+    .UW  ( `HCI_SIZE_GET_UW(tcdm) )
+  ) tcdm_monitor (
+    .clk ( clk_i )
+  );
+  
+  assign tcdm_monitor.req = tcdm.req;
+  assign tcdm_monitor.gnt = tcdm.gnt;
+  assign tcdm_monitor.add = tcdm.add;
+  assign tcdm_monitor.wen = tcdm.wen;
+  assign tcdm_monitor.data = tcdm.data;
+  assign tcdm_monitor.be = tcdm.be;
+  assign tcdm_monitor.r_ready = tcdm.r_ready;
+  assign tcdm_monitor.user = tcdm.user;
+  assign tcdm_monitor.id = tcdm.id;
+  assign tcdm_monitor.r_data = tcdm.r_data;
+  assign tcdm_monitor.r_valid = tcdm.r_valid;
+  assign tcdm_monitor.r_user = tcdm.r_user;
+  assign tcdm_monitor.r_id = tcdm.r_id;
+  assign tcdm_monitor.r_opc = tcdm.r_opc;
+  assign tcdm_monitor.ecc = tcdm.ecc;
+  assign tcdm_monitor.r_ecc = tcdm.r_ecc;
+  assign tcdm_monitor.ereq = tcdm.ereq;
+  assign tcdm_monitor.egnt = tcdm.egnt;
+  assign tcdm_monitor.r_evalid = tcdm.r_evalid;
+  assign tcdm_monitor.r_eready = tcdm.r_eready;
+
   hci_copy_sink # (
     .COPY_TYPE    ( hci_package::NO_ECC    ),
     .COMPARE_TYPE ( hci_package::CTRL_ONLY )
   ) i_hci_copy_sink (
     .clk_i,
     .rst_ni,
-    .tcdm_main ( tcdm                ),
-    .tcdm_copy ( tcdm_replica        ),
+    .tcdm_main ( tcdm_monitor        ),
+    .tcdm_copy ( tcdm_replica.target ),
     .fault_o   ( interface_hci_fault )
   );
 
