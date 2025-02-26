@@ -1,11 +1,11 @@
 # Copyright (C) 2022-2023 ETH Zurich and University of Bologna
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,17 @@
 #
 
 import numpy as np
-import torch 
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import argparse
 import dump_utils as dump
 import os
+
+# Set numpy and random seeds
+np.random.seed(0)
+torch.manual_seed(0)
 
 # COMPUTE:
 # Z[m_size, k_size] = ( X[m_size, n_size] max W[n_size, k_size] ) + Y[m_size, k_size]
