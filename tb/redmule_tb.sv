@@ -410,8 +410,7 @@ module redmule_tb;
       cycle();
     end
   end
-  
-  integer f_t0, f_t1;
+
   integer f_x, f_W, f_y, f_tau;
   logic start;
 
@@ -439,9 +438,6 @@ module redmule_tb;
 
     test_mode = 1'b0;
     fetch_enable = 1'b0;
-
-    f_t0 = $fopen("time_start.txt");
-    f_t1 = $fopen("time_stop.txt");
 
     // load instruction memory
     $readmemh(STIM_INSTR, redmule_tb.i_dummy_imemory.memory);
