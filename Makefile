@@ -21,7 +21,7 @@
 mkfile_path    := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
 SW             ?= $(mkfile_path)/sw
 BUILD_DIR      ?= $(mkfile_path)/work
-QUESTA         ?= questa-2019.3-kgf
+QUESTA         ?= questa-2023.4
 BENDER_DIR     ?= .
 BENDER         ?= bender
 TEST_SRCS      ?= sw/redmule.c
@@ -47,6 +47,8 @@ USE_REDUNDANCY ?= 0
 ifeq ($(verbose),1)
 FLAGS += -DVERBOSE
 endif
+
+PULP_RISCV_GCC_TOOLCHAIN?=/usr/pack/riscv-1.0-kgf/pulp-gcc-2.6.0
 
 # Setup toolchain (from SDK) and options
 CC=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(ISA)$(XLEN)-unknown-elf-gcc
@@ -115,17 +117,21 @@ endif
 
 seed     ?= 42
 tests    ?= 100000
+thread_id ?= 0
+num_threads ?= 1
 
 # Run vulnerability analysis
 analysis: M=12
 analysis: N=16
-analysis: K=16 
+analysis: K=16
 analysis: USE_REDUNDANCY=1
-analysis: golden all $(CRT)
+analysis: $(CRT)
 ifeq ($(gui), 0)
 	$(QUESTA) vsim -c vopt_tb                               \
 	-do "set ::initial_seed ${seed}"                        \
 	-do "set ::max_num_tests ${tests}"                      \
+	-do "set ::thread_id ${thread_id}"                      \
+	-do "set ::num_threads ${num_threads}"                  \
 	-do "vulnerability_analysis/vulnerability_analysis.tcl" \
 	-gSTIM_INSTR=$(STIM_INSTR)                              \
 	-gSTIM_DATA=$(STIM_DATA)                                \
@@ -134,16 +140,19 @@ ifeq ($(gui), 0)
 	-gUSE_REDUNDANCY=1                                      \
 	-suppress vsim-3009
 else
-	$(QUESTA) vsim vopt_tb             \
-	-do "add log -r sim:/redmule_tb/*" \
-	-do "source $(WAVES)"              \
-	-do "set ::initial_seed ${seed}"   \
-	-do "set ::max_num_tests ${tests}" \
-	-gSTIM_INSTR=$(STIM_INSTR)         \
-	-gSTIM_DATA=$(STIM_DATA)           \
-	-gPROB_STALL=$(P_STALL)            \
-	-gUSE_ECC=1                        \
-	-gUSE_REDUNDANCY=1                 \
+	$(QUESTA) vsim vopt_tb             						\
+	-do "add log -r sim:/redmule_tb/*" 						\
+	-do "source $(WAVES)"              						\
+	-do "set ::initial_seed ${seed}"   						\
+	-do "set ::max_num_tests ${tests}" 						\
+	-do "set ::thread_id ${thread_id}"                      \
+	-do "set ::num_threads ${num_threads}"                  \
+	-do "vulnerability_analysis/vulnerability_analysis.tcl" \
+	-gSTIM_INSTR=$(STIM_INSTR)         						\
+	-gSTIM_DATA=$(STIM_DATA)           						\
+	-gPROB_STALL=$(P_STALL)            						\
+	-gUSE_ECC=1                        						\
+	-gUSE_REDUNDANCY=1                 						\
 	-suppress vsim-3009
 endif
 
@@ -153,7 +162,7 @@ bender:
 	--tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh -s -- 0.24.0
 
 update-ips:
-	$(BENDER) update
+	$(BENDER) checkout
 	$(BENDER) script vsim                                       \
 	--vlog-arg="$(compile_flag)"                                \
 	--vcom-arg="-pedanticerrors"                                \
