@@ -102,6 +102,9 @@ module redmule_tb;
   logic          data_err;
   logic          core_sleep;
 
+  logic [MP:0][1:0] ecc_decode_error;
+  logic ecc_error_d, ecc_error_q;
+
   // ATI timing parameters.
   localparam TCP = 1.0ns; // clock period, 1 GHz clock
   localparam TA  = 0.2ns; // application time
@@ -225,7 +228,7 @@ module redmule_tb;
         .in         ( { tcdm_ecc[(ii+1)*7-1+9:ii*7+9], tcdm_data[ii] } ),
         .out        ( tcdm[ii].data ),
         .syndrome_o ( ),
-        .err_o      ( )
+        .err_o      ( ecc_decode_error[ii] )
       );
     end
 
@@ -235,8 +238,19 @@ module redmule_tb;
       .in         ( { tcdm_ecc[8:0], tcdm_add[0], tcdm_wen[0], tcdm_be } ),
       .out        (  ),
       .syndrome_o (  ),
-      .err_o      (  )
+      .err_o      ( ecc_decode_error[MP] )
     );
+  end
+
+  // Collect if there was ever any ecc errors comming out of RedMulE
+  assign ecc_error_d = |ecc_decode_error | ecc_error_q;
+
+  always_ff @(posedge clk) begin
+    if (~rst_n) begin
+      ecc_error_q <= 0;
+    end else begin
+      ecc_error_q = ecc_error_d;
+    end
   end
 
   redmule_wrap #(
@@ -462,8 +476,9 @@ module redmule_tb;
     end else if (errors == 1) begin
       // ID 1: Retry was triggered and result seems fine on SW side
       // We check if the write amout matches what we would think from a good run
-      // with vulnerability analysis e.g. USE_REDUNDANCY=1, M=12, N=16, K=16 
-      if (cnt_wr == 216) begin 
+      // with vulnerability analysis e.g. USE_REDUNDANCY=1, M=12, N=16, K=16
+      // and that we didn't see any ecc errors on system side.
+      if (cnt_wr == 216 && !ecc_error_q) begin 
         $error("Retry was triggered but result was correct (Fine if fault injecting, otherwise not good).");
         unnecesary_retry_termination = '1;
       end else begin
@@ -471,13 +486,19 @@ module redmule_tb;
         retry_termination = '1;
       end
     end else if (errors == 2) begin
-      // ID 1: Retry was triggered and result was wrong on SW side
+      // ID 2: Retry was triggered and result was wrong on SW side
       $error("Retry was triggered for an incorrect result (Fine if fault injecting, otherwise not good).");
       retry_termination = '1;
     end else if (errors == 3) begin
       // ID 3: Retry was not triggered and result is wrong
-      $error("Incorrect result - failure was not detected.");
-      incorrect_termination = '1;
+      // We check if ecc error was triggered elsewhere
+      if (ecc_error_q) begin
+        $error("External ECC detected a problem for an incorrect result (Fine if fault injecting, otherwise not good).");
+        retry_termination = '1;
+      end else begin
+        $error("Incorrect result - failure was not detected.");
+        incorrect_termination = '1;
+      end
     end else begin
       // Any other ID: Exception
       $error("Incorrect result - unknown error code!");
