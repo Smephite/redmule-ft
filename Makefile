@@ -38,11 +38,12 @@ INI_PATH  = $(mkfile_path)/modelsim.ini
 WORK_PATH = $(BUILD_DIR)
 
 # Useful Parameters
-gui            ?= 0
-ipstools       ?= 0
-P_STALL        ?= 0.0
-USE_ECC        ?= 0
-USE_REDUNDANCY ?= 0
+gui                        ?= 0
+ipstools                   ?= 0
+P_STALL                    ?= 0.0
+HARDWARE_ECC               ?= 0
+HARDWARE_FULL_REDUNDANCY   ?= 0
+SOFTWARE_ENABLE_REDUNDANCY ?= 0
 
 ifeq ($(verbose),1)
 FLAGS += -DVERBOSE
@@ -54,7 +55,7 @@ PULP_RISCV_GCC_TOOLCHAIN?=/usr/pack/riscv-1.0-kgf/pulp-gcc-2.6.0
 CC=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(ISA)$(XLEN)-unknown-elf-gcc
 LD=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(ISA)$(XLEN)-unknown-elf-gcc
 OBJDUMP=$(ISA)$(XLEN)-unknown-elf-objdump
-CC_OPTS=-march=$(ARCH)$(XLEN)$(XTEN) -D__$(ISA)__ -O2 -g -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -MMD -MP -DUSE_REDUNDANCY=$(USE_REDUNDANCY)
+CC_OPTS=-march=$(ARCH)$(XLEN)$(XTEN) -D__$(ISA)__ -O2 -g -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -MMD -MP -DUSE_REDUNDANCY=$(SOFTWARE_ENABLE_REDUNDANCY)
 LD_OPTS=-march=$(ARCH)$(XLEN)$(XTEN) -D__$(ISA)__ -MMD -MP -nostartfiles -nostdlib -Wl,--gc-sections
 
 # Setup build object dirs
@@ -94,24 +95,24 @@ all: $(STIM_INSTR) $(STIM_DATA) dis
 # Run the simulation
 run: $(CRT)
 ifeq ($(gui), 0)
-	$(QUESTA) vsim -c vopt_tb          \
-	-do "run -a"                       \
-    -do "exit"                         \
-	-gSTIM_INSTR=$(STIM_INSTR)         \
-	-gSTIM_DATA=$(STIM_DATA)           \
-	-gPROB_STALL=$(P_STALL)            \
-	-gUSE_ECC=$(USE_ECC)               \
-	-gUSE_REDUNDANCY=$(USE_REDUNDANCY) \
+	$(QUESTA) vsim -c vopt_tb                    \
+	-do "run -a"                                 \
+    -do "exit"                                   \
+	-gSTIM_INSTR=$(STIM_INSTR)                   \
+	-gSTIM_DATA=$(STIM_DATA)                     \
+	-gPROB_STALL=$(P_STALL)                      \
+	-gUSE_ECC=$(HARDWARE_ECC)                    \
+	-gUSE_REDUNDANCY=$(HARDWARE_FULL_REDUNDANCY) \
 	-suppress vsim-3009
 else
-	$(QUESTA) vsim vopt_tb             \
-	-do "add log -r sim:/redmule_tb/*" \
-	-do "source $(WAVES)"              \
-	-gSTIM_INSTR=$(STIM_INSTR)         \
-	-gSTIM_DATA=$(STIM_DATA)           \
-	-gPROB_STALL=$(P_STALL)            \
-	-gUSE_ECC=$(USE_ECC)               \
-	-gUSE_REDUNDANCY=$(USE_REDUNDANCY) \
+	$(QUESTA) vsim vopt_tb                       \
+	-do "add log -r sim:/redmule_tb/*"           \
+	-do "source $(WAVES)"                        \
+	-gSTIM_INSTR=$(STIM_INSTR)                   \
+	-gSTIM_DATA=$(STIM_DATA)                     \
+	-gPROB_STALL=$(P_STALL)                      \
+	-gUSE_ECC=$(HARDWARE_ECC)                    \
+	-gUSE_REDUNDANCY=$(HARDWARE_FULL_REDUNDANCY) \
 	-suppress vsim-3009
 endif
 
@@ -121,10 +122,8 @@ thread_id ?= 0
 num_threads ?= 1
 
 # Run vulnerability analysis
-analysis: M=12
-analysis: N=16
-analysis: K=16
-analysis: USE_REDUNDANCY=1
+analysis: HARDWARE_ECC=1
+analysis: HARDWARE_FULL_REDUNDANCY=1
 analysis: $(CRT)
 ifeq ($(gui), 0)
 	$(QUESTA) vsim -c vopt_tb                               \
@@ -136,8 +135,8 @@ ifeq ($(gui), 0)
 	-gSTIM_INSTR=$(STIM_INSTR)                              \
 	-gSTIM_DATA=$(STIM_DATA)                                \
 	-gPROB_STALL=$(P_STALL)                                 \
-	-gUSE_ECC=1                                             \
-	-gUSE_REDUNDANCY=1                                      \
+	-gUSE_ECC=$(HARDWARE_ECC)                               \
+	-gUSE_REDUNDANCY=$(HARDWARE_FULL_REDUNDANCY)            \
 	-suppress vsim-3009
 else
 	$(QUESTA) vsim vopt_tb             						\
@@ -151,8 +150,8 @@ else
 	-gSTIM_INSTR=$(STIM_INSTR)         						\
 	-gSTIM_DATA=$(STIM_DATA)           						\
 	-gPROB_STALL=$(P_STALL)            						\
-	-gUSE_ECC=1                        						\
-	-gUSE_REDUNDANCY=1                 						\
+	-gUSE_ECC=$(HARDWARE_ECC)                               \
+	-gUSE_REDUNDANCY=$(HARDWARE_FULL_REDUNDANCY)            \
 	-suppress vsim-3009
 endif
 
