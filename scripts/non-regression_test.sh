@@ -34,8 +34,8 @@ rm -f $VSIM_LOGFILE
 
 run_regr() {
     make golden M=$M N=$N K=$K > /dev/null
-    make all USE_REDUNDANCY=$SW_REDUNDANCY 1>/dev/null 2>&1
-    timeout $BASE_TIMEOUT make run USE_ECC=$USE_ECC USE_REDUNDANCY=$HW_REDUNDANCY 1>$VSIM_LOGFILE 2>&1
+    make all SOFTWARE_ENABLE_REDUNDANCY=$SW_REDUNDANCY 1>/dev/null 2>&1
+    timeout $BASE_TIMEOUT make run HARDWARE_ECC=$USE_ECC HARDWARE_FULL_REDUNDANCY=$HW_REDUNDANCY 1>$VSIM_LOGFILE 2>&1
     
     # If you want detailed output, uncomment this line
     # tail -10 $VSIM_LOGFILE
