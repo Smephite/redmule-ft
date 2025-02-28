@@ -41,10 +41,9 @@ echo "  Hardware ECC Feature       : $HARDWARE_ECC"
 echo "  Software Enable Redundancy : $SOFTWARE_ENABLE_REDUNDANCY"
 echo "  Number of Injections       : $tests"
 echo "  Number of Threads          : $num_threads"
-echo "  Staring Seed               : $seed"
+echo "  Starting Seed              : $seed"
 
 # Ask if the user wants to continue
-# Only continue if user enters "y" or "Y" or presses Enter
 read -p "Do you want to continue? ([y]/n) " -n 1 -r
 if [[ -z $REPLY || $REPLY =~ ^[Yy]$ ]]; then
     echo ""
@@ -54,27 +53,32 @@ else
     exit 1
 fi
 
-timestamp=$(date +"%Y%m%d_%H%M")  # Get timestamp in YYYYMMDD_HHMMSS format
-echo "Logging to transcript file: transcript_${timestamp}_*.log"
+timestamp=$(date +"%Y%m%d_%H%M")  # Get timestamp in YYYYMMDD_HHMM format
+echo "Prepare Simulation (logging to transcript_${timestamp}_compile*.log)..."
 
 trap 'kill 0; exit' SIGINT SIGTERM EXIT
 
 log_file="transcript_${timestamp}_compile.log"
 
-echo "Compile RTL..."
+echo " - Compile RTL..."
 make hw-all > "$log_file" 2>&1
 
-echo "Generate the test vectors..."
+echo " - Generate the test vectors..."
 make golden >> "$log_file" 2>&1
 
-echo "Building the software..."
+echo " - Building the software..."
 riscv make all SOFTWARE_ENABLE_REDUNDANCY="$SOFTWARE_ENABLE_REDUNDANCY" >> "$log_file" 2>&1
 
-echo "Starting $num_threads parallel test instances..."
+echo "Starting $num_threads parallel fault injection runner..."
+pids=()
+
+timestamp_short=$(date +"%Y%m%d_%H%M")  # Get timestamp in YYYYMMDD_HHMM format
+timestamp_short=${timestamp_short%?}
+
 for ((i=0; i<num_threads; i++)); do
     log_file="transcript_${timestamp}_${i}.log"
 
-    echo "Starting instance $i with seed $seed (logging to $log_file)..."
+    echo " - Starting instance $i with seed $seed (logging to $log_file)..."
 
     # Run the fault injection command in the background
     make analysis \
@@ -84,11 +88,102 @@ for ((i=0; i<num_threads; i++)); do
         seed="$seed" \
         thread_id="$i" \
         num_threads="$num_threads" > "$log_file" 2>&1 &
+
+    pids+=($!)
 done
 
-# Wait for all background processes
-wait
 
-echo "All instances have completed."
+# Monitor progress
+progress=0
 
+while true; do
+
+    # Find the latest CSV file based on timestamp range (to account for small timing differences)
+    csv_files=(vulnerability_${timestamp_short}*.csv)
+    latest_csv=""
+
+    # Check if CSV files exist and select the most recent one
+    if [ ${#csv_files[@]} -gt 0 ]; then
+        latest_csv=$(ls -t vulnerability_${timestamp_short}*.csv 2>/dev/null | head -n 1)
+    fi
+
+    if [[ -z "$latest_csv" ]]; then
+        printf "\rProgress: [--------------------------------------------------] 0%% (Log files not found yet...)"
+        continue
+    fi
+
+    # Generate a wildcard pattern to match related CSV files based on the latest csv file
+    csv_basename=$(echo "$latest_csv" | sed -E 's/_[0-9]+\.csv/*\.csv/')
+
+    # Check if all threads are still running
+    for pid in "${pids[@]}"; do
+        if ! kill -0 "$pid" 2>/dev/null; then
+            echo -e "\nWARNING: Process $pid has stopped!"
+            pids=(${pids[@]/$pid})
+        fi
+    done
+
+    # Count total lines in all matching CSV files
+    total_lines=$(cat $csv_basename 2>/dev/null | wc -l)
+
+    # Calculate progress
+    progress=$((total_lines - num_threads))
+    progress=$((progress < 0 ? 0 : progress))
+    progress_percent=$((progress * 100 / tests))
+    progress_percent=$((progress_percent > 100 ? 100 : progress_percent))
+
+    # Display progress bar
+    bar_length=50
+    filled_length=$((bar_length * progress_percent / 100))
+    bar=$(printf "%-${filled_length}s" "#" | tr ' ' '#')
+    empty=$(printf "%-$((bar_length - filled_length))s" "-")
+
+    printf "\rProgress: [%s%s] %d%% (%d/%d tests)                               " "$bar" "$empty" "$progress_percent" "$progress" "$tests"
+
+    # Break all pids have stopped
+    if [ ${#pids[@]} -eq 0 ]; then
+        break
+    fi
+
+    sleep 1  # Adjust frequency of updates
+done
+
+echo -e "\nAll instances have completed."
+
+# Merge all CSV files
+echo "Merging CSV files..."
+
+# Find latest csv file matching the basename and remove the thread number
+latest_csv=$(ls -t vulnerability_${timestamp_short}*.csv 2>/dev/null | head -n 1)
+file_pattern=$(echo "$latest_csv" | sed -E 's/_[0-9]+\.csv/*\.csv/')
+
+echo " - Merging CSV files matching the pattern: $file_pattern"
+
+# Find all matching CSV files
+csv_files=($(ls $file_pattern 2>/dev/null))
+
+# Check if any CSV files exist
+if [ ${#csv_files[@]} -eq 0 ]; then
+    echo "No CSV files found matching the pattern '$file_pattern'!"
+    exit 1
+fi
+
+# Extract the common filename prefix (remove wildcards and trailing parts)
+common_part=$(echo "$file_pattern" | sed -E 's/[*?].*//')
+
+# Define the output file using the common filename part and timestamp
+output_file="${common_part}.csv"
+
+echo " - Merging ${#csv_files[@]} CSV files into $output_file..."
+
+# Extract header from the first CSV file
+head -n 1 "${csv_files[0]}" > "$output_file"
+
+# Concatenate all CSV files excluding the header, then sort by first column (seed)
+tail -n +2 -q "${csv_files[@]}" | sort -t, -k1,1n >> "$output_file"
+
+echo "Merge complete: $output_file"
+
+# Exit without triggering the trap
+trap - SIGINT SIGTERM EXIT
 

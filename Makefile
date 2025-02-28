@@ -1,11 +1,11 @@
 # Copyright (C) 2022-2023 ETH Zurich and University of Bologna
-# 
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -165,7 +165,7 @@ update-ips:
 	$(BENDER) script vsim                                       \
 	--vlog-arg="$(compile_flag)"                                \
 	--vcom-arg="-pedanticerrors"                                \
-	-t rtl -t test -t cv32e40p_exclude_tracer -t redmule_test   \
+	-t rtl -t test -t cv32e40p_exclude_tracer -t redmule_test -D common_cells_asserts_off   \
 	> ${compile_script}
 
 build-hw: hw-all
