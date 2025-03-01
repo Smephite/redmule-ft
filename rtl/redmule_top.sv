@@ -597,16 +597,16 @@ for (genvar r = 0; r < REP; r++) begin: gen_controllers
     logic same_periph_r_valid;
     logic same_periph_r_id;
 
-    assign same_busy            =      local_busy[r-1]      ==      local_busy[r];
-    assign same_clear           =           clear[r-1]      ==           clear[r];
-    assign same_evt             =       local_evt[r-1]      ==       local_evt[r];
-    assign same_fill            =   z_buffer_ctrl[r-1].fill ==   z_buffer_ctrl[r].fill;
-    assign same_w_shift         =         w_shift[r-1]      ==         w_shift[r];
-    assign same_ctrl_z_clk_en   =   ctrl_z_clk_en[r-1]      ==   ctrl_z_clk_en[r];
-    assign same_reg_file        =        reg_file[r-1]      ==        reg_file[r];
-    assign same_engine_flush    =    engine_flush[r-1]      ==    engine_flush[r];
-    assign same_accumulate      =      accumulate[r-1]      ==      accumulate[r];
-    assign same_cntrl_scheduler = cntrl_scheduler[r-1]      == cntrl_scheduler[r];
+    assign same_busy            =      local_busy[r]      ==      local_busy[0];
+    assign same_clear           =           clear[r]      ==           clear[0];
+    assign same_evt             =       local_evt[r]      ==       local_evt[0];
+    assign same_fill            =   z_buffer_ctrl[r].fill ==   z_buffer_ctrl[0].fill;
+    assign same_w_shift         =         w_shift[r]      ==         w_shift[0];
+    assign same_ctrl_z_clk_en   =   ctrl_z_clk_en[r]      ==   ctrl_z_clk_en[0];
+    assign same_reg_file        =        reg_file[r]      ==        reg_file[0];
+    assign same_engine_flush    =    engine_flush[r]      ==    engine_flush[0];
+    assign same_accumulate      =      accumulate[r]      ==      accumulate[0];
+    assign same_cntrl_scheduler = cntrl_scheduler[r]      == cntrl_scheduler[0];
     assign same_periph_gnt      = periph.gnt     == periph_local.gnt;
     assign same_periph_r_data   = periph.r_data  == periph_local.r_data;
     assign same_periph_r_valid  = periph.r_valid == periph_local.r_valid;
@@ -713,22 +713,22 @@ for (genvar r = 0; r < REP; r++) begin: gen_scheduler
     logic same_x_buffer_ctrl;
     logic same_flgs_scheduler;
 
-    assign same_soft_clear       =      soft_clear[r-1]             == soft_clear[0];
-    assign same_w_load           =   w_buffer_ctrl[r-1].load        == w_buffer_ctrl[0].load;
-    assign same_w_cols_lftovr    =   w_buffer_ctrl[r-1].cols_lftovr == w_buffer_ctrl[0].cols_lftovr;
-    assign same_w_rows_lftovr    =   w_buffer_ctrl[r-1].rows_lftovr == w_buffer_ctrl[0].rows_lftovr;
-    assign same_y_cols_lftovr    =   z_buffer_ctrl[r-1].cols_lftovr == z_buffer_ctrl[0].cols_lftovr;
-    assign same_y_rows_lftovr    =   z_buffer_ctrl[r-1].rows_lftovr == z_buffer_ctrl[0].rows_lftovr;
-    assign same_gate_en          =         gate_en[r-1]             == gate_en[0];
-    assign same_x_buffer_clk_en  = x_buffer_clk_en[r-1]             == x_buffer_clk_en[0];
-    assign same_z_buffer_clk_en  =    fsm_z_clk_en[r-1]             == fsm_z_clk_en[0];
-    assign same_reg_enable       =      reg_enable[r-1]             == reg_enable[0];
-    assign same_z_store          =   z_buffer_ctrl[r-1].store       == z_buffer_ctrl[0].store;
-    assign same_y_buffer_load    =   z_buffer_ctrl[r-1].load        == z_buffer_ctrl[0].load;
-    assign same_cntrl_engine     =    cntrl_engine[r-1]             == cntrl_engine[0];
-    assign same_cntrl_streamer   =  cntrl_streamer[r-1]             == cntrl_streamer[0];
-    assign same_x_buffer_ctrl    =   x_buffer_ctrl[r-1]             == x_buffer_ctrl[0];
-    assign same_flgs_scheduler   =  flgs_scheduler[r-1]             == flgs_scheduler[0];
+    assign same_soft_clear       =      soft_clear[r]             ==      soft_clear[0];
+    assign same_w_load           =   w_buffer_ctrl[r].load        ==   w_buffer_ctrl[0].load;
+    assign same_w_cols_lftovr    =   w_buffer_ctrl[r].cols_lftovr ==   w_buffer_ctrl[0].cols_lftovr;
+    assign same_w_rows_lftovr    =   w_buffer_ctrl[r].rows_lftovr ==   w_buffer_ctrl[0].rows_lftovr;
+    assign same_y_cols_lftovr    =   z_buffer_ctrl[r].cols_lftovr ==   z_buffer_ctrl[0].cols_lftovr;
+    assign same_y_rows_lftovr    =   z_buffer_ctrl[r].rows_lftovr ==   z_buffer_ctrl[0].rows_lftovr;
+    assign same_gate_en          =         gate_en[r]             ==         gate_en[0];
+    assign same_x_buffer_clk_en  = x_buffer_clk_en[r]             == x_buffer_clk_en[0];
+    assign same_z_buffer_clk_en  =    fsm_z_clk_en[r]             ==    fsm_z_clk_en[0];
+    assign same_reg_enable       =      reg_enable[r]             ==      reg_enable[0];
+    assign same_z_store          =   z_buffer_ctrl[r].store       ==   z_buffer_ctrl[0].store;
+    assign same_y_buffer_load    =   z_buffer_ctrl[r].load        ==   z_buffer_ctrl[0].load;
+    assign same_cntrl_engine     =    cntrl_engine[r]             ==    cntrl_engine[0];
+    assign same_cntrl_streamer   =  cntrl_streamer[r]             ==  cntrl_streamer[0];
+    assign same_x_buffer_ctrl    =   x_buffer_ctrl[r]             ==   x_buffer_ctrl[0];
+    assign same_flgs_scheduler   =  flgs_scheduler[r]             ==  flgs_scheduler[0];
 
     assign local_scheduler_fault[r] =
         ~same_soft_clear | ~same_w_load | ~same_w_cols_lftovr | ~same_w_rows_lftovr |
