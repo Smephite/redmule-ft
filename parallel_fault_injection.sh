@@ -54,7 +54,7 @@ else
 fi
 
 timestamp=$(date +"%Y%m%d_%H%M")  # Get timestamp in YYYYMMDD_HHMM format
-echo "Prepare Simulation (logging to transcript_${timestamp}_compile*.log)..."
+echo "Prepare Simulation (logging to transcript_${timestamp}_compile.log)..."
 
 trap 'kill 0; exit' SIGINT SIGTERM EXIT
 
@@ -149,6 +149,11 @@ while true; do
 done
 
 echo -e "\nAll instances have completed."
+
+# Exit if number of threads is 1
+if [ $num_threads -eq 1 ]; then
+    exit 0
+fi
 
 # Merge all CSV files
 echo "Merging CSV files..."
