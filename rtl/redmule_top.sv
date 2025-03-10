@@ -1,8 +1,8 @@
 /*
  * Copyright (C) 2022-2023 ETH Zurich and University of Bologna
  *
- * Licensed under the Solderpad Hardware License, Version 0.51 
- * (the "License"); you may not use this file except in compliance 
+ * Licensed under the Solderpad Hardware License, Version 0.51
+ * (the "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
@@ -15,7 +15,7 @@
  * SPDX-License-Identifier: SHL-0.51
  *
  * Authors:  Yvan Tortorella <yvan.tortorella@unibo.it>
- * 
+ *
  * RedMulE Top-Level Module
  */
 
@@ -48,7 +48,7 @@ parameter hci_size_parameter_t `HCI_SIZE_PARAM(tcdm) = '0
   input  logic                    test_mode_i,
   output logic                    busy_o     ,
   output logic [N_CORES-1:0][1:0] evt_o      ,
- 
+
   // TCDM master ports for the memory sID_WIDTHe
   hci_core_intf.initiator         tcdm       ,
   // Periph slave port for the controller sID_WIDTHe
@@ -219,7 +219,7 @@ if (REP > 1) begin : gen_streamer_replica
   ) tcdm_monitor (
     .clk ( clk_i )
   );
-  
+
   assign tcdm_monitor.req = tcdm.req;
   assign tcdm_monitor.gnt = tcdm.gnt;
   assign tcdm_monitor.add = tcdm.add;
@@ -597,6 +597,7 @@ for (genvar r = 0; r < REP; r++) begin: gen_controllers
     logic same_periph_r_valid;
     logic same_periph_r_id;
 
+    assign same_y_push_enable   =   z_buffer_ctrl[r].y_push_enable == z_buffer_ctrl[0].y_push_enable;
     assign same_busy            =      local_busy[r]      ==      local_busy[0];
     assign same_clear           =           clear[r]      ==           clear[0];
     assign same_evt             =       local_evt[r]      ==       local_evt[0];
@@ -615,7 +616,7 @@ for (genvar r = 0; r < REP; r++) begin: gen_controllers
     assign local_ctrl_fault[r] =
       ~same_busy | ~same_clear | ~same_evt | ~same_fill | ~same_w_shift | ~same_ctrl_z_clk_en |
       ~same_reg_file | ~same_engine_flush | ~same_accumulate | ~same_cntrl_scheduler |
-      ~same_periph_gnt | ~same_periph_r_data | ~same_periph_r_valid | ~same_periph_r_id;
+      ~same_periph_gnt | ~same_periph_r_data | ~same_periph_r_valid | ~same_periph_r_id | ~same_y_push_enable;
 
   end else begin: gen_no_control_voters
     assign local_ctrl_fault[r] = 1'b0;
