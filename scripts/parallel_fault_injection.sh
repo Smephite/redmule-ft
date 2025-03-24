@@ -87,7 +87,7 @@ for ((i=0; i<num_threads; i++)); do
         tests="$tests" \
         seed="$seed" \
         thread_id="$i" \
-        num_threads="$num_threads" > "$log_file" 2>&1 &
+        num_threads="$num_threads" 2>&1 | tee -a "$log_file" >/dev/null &
 
     pids+=($!)
 done
