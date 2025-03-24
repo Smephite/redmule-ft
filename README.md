@@ -24,7 +24,7 @@ Additionally, you need to download [InjectaFault](https://github.com/pulp-platfo
 The path to InjectaFault is specified in [vulnerability_analysis.tcl](vulnerability_analysis/vulnerability_analysis.tcl) and defaults to `../InjectaFault`. If you have InjectaFault installed in a different location, you can change the path in the tcl script.
 
 ```bash
-git clone https://github.com/xeratec/injectafault ../InjectaFault
+git clone https://github.com/pulp-platform/InjectaFault ../InjectaFault
 ```
 
 The golden model makes use of Python3.6 virtual environment, Numpy and Pytorch. These modules have
