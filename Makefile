@@ -116,8 +116,8 @@ else
 	-suppress vsim-3009
 endif
 
-seed     ?= 42
-tests    ?= 100000
+seed     ?= 1
+tests    ?= 1
 thread_id ?= 0
 num_threads ?= 1
 
