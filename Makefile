@@ -24,6 +24,7 @@ BUILD_DIR      ?= $(mkfile_path)/work
 QUESTA         ?= questa-2023.4
 BENDER_DIR     ?= .
 BENDER         ?= bender
+PYTHON         ?= python
 TEST_SRCS      ?= sw/redmule.c
 WAVES          ?= $(mkfile_path)/wave.tcl
 ISA            ?= riscv
@@ -71,7 +72,7 @@ STIM_DATA=$(BUILD_DIR)/$(TEST_SRCS)/stim_data.txt
 $(STIM_INSTR) $(STIM_DATA): $(BIN)
 	objcopy --srec-len 1 --output-target=srec $(BIN) $(BIN).s19
 	sw/parse_s19.pl $(BIN).s19 > $(BIN).txt
-	python3.6 sw/s19tomem.py $(BIN).txt $(STIM_INSTR) $(STIM_DATA)
+	$(PYTHON) sw/s19tomem.py $(BIN).txt $(STIM_INSTR) $(STIM_DATA)
 
 $(BIN): $(CRT) $(OBJ) sw/link.ld
 	$(LD) $(LD_OPTS) -o $(BIN) $(CRT) $(OBJ) -Tsw/link.ld

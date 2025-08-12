@@ -17,8 +17,8 @@
 #
 # RedMulE Golden Model Makefile
 
-PYTHON   := python3.6
-PIP     := python3.6 -m pip
+PYTHON  ?= python3.6
+PIP     ?= python3.6 -m pip
 SHELL   := /bin/bash
 CUR_DIR := $(shell pwd)
 PENV    := $(CUR_DIR)/venv
