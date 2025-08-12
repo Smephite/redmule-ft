@@ -63,13 +63,20 @@ foreach my $aint (sort keys %m) {
   my $byte2=substr($prev,4,2);
   my $byte3=substr($prev,6,2);
 
-  use Switch;
 
-  switch($aint % 4) {
-      case 0 { $prev="${data}${byte1}${byte2}${byte3}" }
-      case 1 { $prev="${byte0}${data}${byte2}${byte3}" }
-      case 2 { $prev="${byte0}${byte1}${data}${byte3}" }
-      case 3 { $prev="${byte0}${byte1}${byte2}${data}" }
+  my $c=$aint % 4;
+
+  if ($c == 0) {
+    $prev="${data}${byte1}${byte2}${byte3}"
+  }
+  elsif ($c == 1) {
+    $prev="${byte0}${data}${byte2}${byte3}"
+  }
+  elsif ($c == 2) {
+    $prev="${byte0}${byte1}${data}${byte3}"
+  }
+  elsif ($c == 3) {
+    $prev="${byte0}${byte1}${byte2}${data}"
   }
 
   $m32{$addr}=$prev;
@@ -137,7 +144,7 @@ sub hex2int {
 # 
 sub int2hex {
   my $i=shift;                                    # read in the integer
-  my $h;                                          # define hex value
+  my $h="";                                       # define hex value
   for my $n (0..7){                               # 8 digits
     my $e=16 ** (7-$n);                           # calculate exponent
     if ($e > $i){                                 # if 2^e is larger
