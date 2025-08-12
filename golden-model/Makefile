@@ -17,6 +17,8 @@
 #
 # RedMulE Golden Model Makefile
 
+PYTHON   := python3.6
+PIP     := python3.6 -m pip
 SHELL   := /bin/bash
 CUR_DIR := $(shell pwd)
 PENV    := $(CUR_DIR)/venv
@@ -54,7 +56,7 @@ addmax: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)                           \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
@@ -66,7 +68,7 @@ addmin: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)                           \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
@@ -78,7 +80,7 @@ gemm: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)                           \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
@@ -90,7 +92,7 @@ maxmin: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)/inc                       \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
@@ -102,7 +104,7 @@ minmax: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)                           \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
@@ -114,7 +116,7 @@ mulmax: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)                           \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
@@ -126,7 +128,7 @@ mulmin: check_penv
 	cd $(PENV);                               \
 	source ./bin/activate;                    \
 	cd $(CUR_DIR)/$(fp_fmt);                  \
-	python3 ./scripts/$@.py                   \
+	$(PYTHON) ./scripts/$@.py                   \
 	--m_size $(M) --n_size $(N) --k_size $(K) \
 	--inc_dir $(SW)                           \
 	--txt_dir $(CUR_DIR)/$@/txt;              \
