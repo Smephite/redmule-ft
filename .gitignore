@@ -16,3 +16,4 @@ startup*.cpt
 compile.log
 vulnerability*.csv
 transcript*.log
+.vscode/
