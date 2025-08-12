@@ -32,6 +32,7 @@ add wave -noupdate -group Streamer -group X_Addresgen -position insertpoint sim:
 add wave -noupdate -group Streamer -group W_Addresgen -position insertpoint sim:/redmule_tb/i_redmule_wrap/i_redmule_top/i_streamer/i_w_stream_in/i_stream_source/i_addressgen/*
 add wave -noupdate -group Streamer -group Y_Addresgen -position insertpoint sim:/redmule_tb/i_redmule_wrap/i_redmule_top/i_streamer/i_y_stream_in/i_stream_source/i_addressgen/*
 add wave -noupdate -group Streamer -group Z_Addresgen -position insertpoint sim:/redmule_tb/i_redmule_wrap/i_redmule_top/i_streamer/i_z_stream_out/i_stream_sink/i_addressgen/*
+add wave -noupdate -group Streamer -group Fault_Detection -position insertpoint  sim:/redmule_tb/i_redmule_wrap/i_redmule_top/i_streamer/gen_serial_fault_detection/*
 add wave -noupdate -group Streamer /redmule_tb/i_redmule_wrap/i_redmule_top/i_streamer/*
 
 set arraw_width 12
