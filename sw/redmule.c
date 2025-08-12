@@ -302,16 +302,25 @@ int main() {
   int gold_sum = 0, check_sum = 0;
   int i,j;
 
-  volatile int data_correctable_cnt, data_uncorrectable_cnt, meta_uncorrectable_cnt = 0;
+  volatile int data_correctable_cnt, data_uncorrectable_cnt, meta_correctable_cnt, meta_uncorrectable_cnt = 0;
 
   // Enable RedMulE CG
   hwpe_cg_enable();
 
   // Test
+  // Either if USE_SWITCH:
+  // * Test Switching between redundancy and non-redundant mode
+  // Or else:
+  // * Test Multiple Calculations
+
   redmule_execute((uint32_t)x,  (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, redundancy);
   if (test_switch && redundancy) {
     redmule_execute((uint32_t)x, (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, 0);
     redmule_execute((uint32_t)x, (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, 1);
+  } else {
+  redmule_execute((uint32_t)x,  (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, redundancy);
+  redmule_execute((uint32_t)x,  (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, redundancy);
+
   }
 
   
@@ -330,10 +339,12 @@ int main() {
 
   data_correctable_cnt = redmule_get_data_correctable_count();
   data_uncorrectable_cnt = redmule_get_data_uncorrectable_count();
+  meta_correctable_cnt = redmule_get_meta_correctable_count();
   meta_uncorrectable_cnt = redmule_get_meta_uncorrectable_count();
 
   tfp_printf ("Data errors corrected: %d \n", data_correctable_cnt);
   tfp_printf ("Data errors uncorrectable: %d \n", data_uncorrectable_cnt);
+  tfp_printf ("Meta errors correctable: %d \n", meta_correctable_cnt);
   tfp_printf ("Meta errors uncorrectable: %d \n", meta_uncorrectable_cnt);
 
   error_count = redmule16_compare_int(z, golden, m_size*k_size/2, k_size/2);
