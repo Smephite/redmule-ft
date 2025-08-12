@@ -182,6 +182,7 @@ redmule_streamer #(
   // Controller generated signals
   .enable_i       ( enable[0]           ),
   .clear_i        ( clear[0]            ),
+  .redundant_i    (reg_file[0].hwpe_params[REDUNDANCY_SELECTION][15:0] != 16'hFF00),
   // Source interfaces for the incoming streams
   .x_stream_o     ( x_buffer_d          ),
   .w_stream_o     ( w_buffer_d          ),
@@ -269,6 +270,7 @@ if (REP > 1) begin : gen_streamer_replica
     // Controller generated signals
     .enable_i       ( enable[1]          ),
     .clear_i        ( clear[1]           ),
+    .redundant_i    (reg_file[1].hwpe_params[REDUNDANCY_SELECTION][15:0] != 16'hFF00),
     // Source interfaces for the incoming streams
     .x_stream_o     ( x_copy_buffer_d    ),
     .w_stream_o     ( w_copy_buffer_d    ),

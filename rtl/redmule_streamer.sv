@@ -41,6 +41,7 @@ parameter hci_size_parameter_t `HCI_SIZE_PARAM(tcdm) = '0
   input logic                    test_mode_i,
   input logic                    enable_i,
   input logic                    clear_i,
+  input logic                    redundant_i,
   // Engine X input + HS signals (output for the streamer)
   hwpe_stream_intf_stream.source x_stream_o,
   // Engine W input + HS signals (output for the streamer)
@@ -103,16 +104,19 @@ end
 if (SERIAL_REPLICATION) begin: gen_serial_fault_detection
   logic [DW-1:0] data_out_d, data_out_q;
   logic same_d, same_q;
-  logic data_transmitted;
+  logic data_transmitted, latch_check_fault;
 
   assign data_transmitted = tcdm_dupl.req && tcdm_dupl.gnt && !tcdm_dupl.wen;
+  // Only check for duplicate data if in redundant mode
+  assign latch_check_fault = data_transmitted && redundant_i;
+
   assign data_out_d[DW-1:0] = tcdm_dupl.data;
 
-  `FFL(data_out_q, data_out_d, data_transmitted, '0);
+  `FFLARNC(data_out_q, data_out_d, latch_check_fault, clear_i, '0, clk_i, rst_ni);
 
   assign same_d = data_out_d == data_out_q;
 
-  `FFL(same_q, same_d, data_transmitted, '1);
+  `FFLARNC(same_q, same_d, latch_check_fault, clear_i, '1, clk_i, rst_ni);
 
   assign serial_fault_o = ~same_d && ~same_q && data_transmitted;
 end else begin: gen_no_serial_fault_detection
