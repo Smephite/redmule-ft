@@ -44,6 +44,7 @@ P_STALL                    ?= 0.0
 HARDWARE_ECC               ?= 0
 HARDWARE_FULL_REDUNDANCY   ?= 0
 SOFTWARE_ENABLE_REDUNDANCY ?= 0
+SOFTWARE_TEST_SWITCH       ?= 0
 
 ifeq ($(verbose),1)
 FLAGS += -DVERBOSE
@@ -54,8 +55,8 @@ PULP_RISCV_GCC_TOOLCHAIN?=/usr/pack/riscv-1.0-kgf/pulp-gcc-2.6.0
 # Setup toolchain (from SDK) and options
 CC=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(ISA)$(XLEN)-unknown-elf-gcc
 LD=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(ISA)$(XLEN)-unknown-elf-gcc
-OBJDUMP=$(ISA)$(XLEN)-unknown-elf-objdump
-CC_OPTS=-march=$(ARCH)$(XLEN)$(XTEN) -D__$(ISA)__ -O2 -g -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -MMD -MP -DUSE_REDUNDANCY=$(SOFTWARE_ENABLE_REDUNDANCY)
+OBJDUMP=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/$(ISA)$(XLEN)-unknown-elf-objdump
+CC_OPTS=-march=$(ARCH)$(XLEN)$(XTEN) -D__$(ISA)__ -O2 -g -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -MMD -MP -DUSE_REDUNDANCY=$(SOFTWARE_ENABLE_REDUNDANCY) -DTEST_SWITCH=$(SOFTWARE_TEST_SWITCH)
 LD_OPTS=-march=$(ARCH)$(XLEN)$(XTEN) -D__$(ISA)__ -MMD -MP -nostartfiles -nostdlib -Wl,--gc-sections
 
 # Setup build object dirs
@@ -70,7 +71,7 @@ STIM_DATA=$(BUILD_DIR)/$(TEST_SRCS)/stim_data.txt
 $(STIM_INSTR) $(STIM_DATA): $(BIN)
 	objcopy --srec-len 1 --output-target=srec $(BIN) $(BIN).s19
 	sw/parse_s19.pl $(BIN).s19 > $(BIN).txt
-	python sw/s19tomem.py $(BIN).txt $(STIM_INSTR) $(STIM_DATA)
+	python3.6 sw/s19tomem.py $(BIN).txt $(STIM_INSTR) $(STIM_DATA)
 
 $(BIN): $(CRT) $(OBJ) sw/link.ld
 	$(LD) $(LD_OPTS) -o $(BIN) $(CRT) $(OBJ) -Tsw/link.ld
@@ -173,7 +174,7 @@ build-hw: hw-all
 sdk:
 	cd $(SW); \
 	git clone \
-	git@github.com:pulp-platform/pulp-sdk.git
+	https://github.com/pulp-platform/pulp-sdk.git
 
 clean-sdk:
 	rm -rf $(SW)/pulp-sdk

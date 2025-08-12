@@ -258,6 +258,25 @@ int redmule8_compare_int(uint32_t *actual_z, uint32_t *golden_z, int len) {
   return errors;
 }
 
+
+void redmule_execute(uint32_t x_address, uint32_t w_address, uint32_t y_address, uint32_t z_address, uint16_t m_size, uint16_t n_size, uint16_t k_size, uint8_t gemm_ops, uint32_t redundancy_enabled) {
+  int offload_id_tmp, offload_id;
+
+  hwpe_soft_clear();
+
+  while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
+  
+  // job-dependent registers
+  // _Bool is_gemm = 1;
+  redmule_cfg ((uint32_t) x_address, (uint32_t) w_address, (uint32_t) y_address, (uint32_t) z_address, m_size, n_size, k_size, gemm_ops, redundancy_enabled);
+
+  // Start RedMulE operation
+  hwpe_trigger_job();
+    
+  // Wait for end of computation
+  asm volatile ("wfi" ::: "memory");
+}
+
 int main() {
 
   uint16_t m_size = M_SIZE;
@@ -265,6 +284,13 @@ int main() {
   uint16_t k_size = K_SIZE;
 
   uint32_t redundancy = USE_REDUNDANCY;
+  uint32_t test_switch = TEST_SWITCH;
+
+  if(!redundancy && test_switch) {
+    tfp_printf("Error: Redundancy is disabled, but test switch is enabled.\n");
+    *(int *) 0x80000000 = 1;
+    return -1;
+  }
 
   uint8_t *x = x_inp;
   uint8_t *w = w_inp;
@@ -278,32 +304,29 @@ int main() {
 
   volatile int data_correctable_cnt, data_uncorrectable_cnt, meta_uncorrectable_cnt = 0;
 
-  int offload_id_tmp, offload_id;
-
-  // Enable RedMulE
+  // Enable RedMulE CG
   hwpe_cg_enable();
 
-  hwpe_soft_clear();
+  // Test
+  redmule_execute((uint32_t)x,  (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, redundancy);
+  if (test_switch && redundancy) {
+    redmule_execute((uint32_t)x, (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, 0);
+    redmule_execute((uint32_t)x, (uint32_t)w, (uint32_t)y, (uint32_t)z, m_size, n_size, k_size, gemm_ops, 1);
+  }
 
-  while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
   
-  // job-dependent registers
-  // _Bool is_gemm = 1;
-  redmule_cfg ((uint32_t) x, (uint32_t) w, (uint32_t) y, (uint32_t) z, m_size, n_size, k_size, gemm_ops, redundancy);
-
-  // Start RedMulE operation
-  hwpe_trigger_job();
-
-  // Wait for end of computation
-  asm volatile ("wfi" ::: "memory");
-
-  // Disable RedMulE
+  // Disable RedMulE CG
   hwpe_cg_disable();
 
   if (redundancy > 0)
     tfp_printf ("Info: Redundancy is enabled.\n");
   else
     tfp_printf ("Info: Redundancy is disabled.\n");
+  
+  if (test_switch > 0)
+    tfp_printf ("Info: Test switch is enabled.\n");
+  else
+    tfp_printf ("Info: Test switch is disabled.\n");
 
   data_correctable_cnt = redmule_get_data_correctable_count();
   data_uncorrectable_cnt = redmule_get_data_uncorrectable_count();
